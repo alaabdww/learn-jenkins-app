@@ -4,19 +4,29 @@ pipeline {
     stages {
         stage('Build') {
             agent {
-                docker{
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
             steps {
-                echo '''
+                sh '''
+                    echo "---- Current Directory ----"
+                    pwd
+                    echo "---- Listing Files ----"
                     ls -la
+                    echo "---- Node.js Version ----"
                     node --version
+                    echo "---- npm Version ----"
                     npm --version
+                    echo "---- Installing Dependencies ----"
                     npm ci
+                    echo "---- Running Build ----"
                     npm run build
+                    echo "---- Files After Build ----"
                     ls -la
+                    echo "---- Checking Build Directory ----"
+                    ls -la build/
                 '''
             }
         }
@@ -28,15 +38,14 @@ pipeline {
                     reuseNode true
                 }
             }
-
             steps {
                 sh '''
-                    test -f build/index.html
+                    echo "---- Testing Build Output ----"
+                    test -f build/index.html && echo "index.html found!" || { echo "index.html not found!"; exit 1; }
+                    echo "---- Running Tests ----"
                     npm test
                 '''
             }
         }
-
-        
     }
 }
